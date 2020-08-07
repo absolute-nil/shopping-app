@@ -13,16 +13,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (ctx) => Products(),
-          child: MaterialApp(
+      child: MaterialApp(
         title: 'MyShop',
         theme: ThemeData(
             primarySwatch: Colors.pink,
             accentColor: Colors.amberAccent,
             fontFamily: GoogleFonts.lato().fontFamily),
         home: ProductsOverview(),
-        routes: {
-          ProductDetailScreen.routeName : (ctx) => ProductDetailScreen()
-        },
+        routes: {ProductDetailScreen.routeName: (ctx) => ProductDetailScreen()},
       ),
     );
   }
