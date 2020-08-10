@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart.dart' show Cart;
 import '../widgets/cart_item.dart';
+import '../providers/orders.dart';
 
 class CartScreen extends StatelessWidget {
   static final routeName = "/cart-screen";
@@ -28,7 +29,7 @@ class CartScreen extends StatelessWidget {
                   Spacer(),
                   Chip(
                     label: Text(
-                      "Rs. ${cart.totalAmount}",
+                      "Rs. ${cart.totalAmount.toStringAsFixed(2)}",
                       style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
                     backgroundColor: Colors.white,
@@ -39,7 +40,11 @@ class CartScreen extends StatelessWidget {
                     width: 10,
                   ),
                   FlatButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Provider.of<Orders>(context, listen: false).addOrder(
+                          cart.items.values.toList(), cart.totalAmount);
+                      cart.clearItems();
+                    },
                     child: Text("Order Now"),
                     color: Theme.of(context).accentColor,
                   ),
@@ -54,7 +59,7 @@ class CartScreen extends StatelessWidget {
               child: ListView.builder(
                   itemCount: cart.items.length,
                   itemBuilder: (ctx, i) => CartItem(
-                    // .values to list is used to convert map to list (map is stored in the cart provider)
+                      // .values to list is used to convert map to list (map is stored in the cart provider)
                       productId: cart.items.keys.toList()[i],
                       id: cart.items.values.toList()[i].id,
                       title: cart.items.values.toList()[i].title,
