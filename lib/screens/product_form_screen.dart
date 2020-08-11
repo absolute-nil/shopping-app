@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../providers/product.dart';
+import '../providers/products.dart';
 
 class ProductFormScreen extends StatefulWidget {
   static const route_name = "/product-form";
@@ -25,6 +27,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   void _updateImageURL() {
     if (!_imageURLFocusNode.hasFocus) {
+      if ((!_imageURLController.text.startsWith("http")&&
+              !_imageURLController.text.startsWith("https")) ||
+          (!_imageURLController.text.endsWith(".png") &&
+              !_imageURLController.text.endsWith(".jpg") &&
+              !_imageURLController.text.endsWith(".jpeg"))) {
+        return;
+      }
+
       setState(() {});
     }
   }
@@ -39,8 +49,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   void _saveForm() {
+    final isValid = _form.currentState.validate();
+    if (!isValid) {
+      return;
+    }
     _form.currentState.save();
-    print(_savedProduct.title);
+    Provider.of<Products>(context, listen: false).addProduct(_savedProduct);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -49,9 +64,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       appBar: AppBar(
         title: Text("Edit Product"),
         actions: [
-          IconButton(icon: Icon(Icons.save), onPressed: (){
-            _saveForm();
-          })
+          IconButton(
+              icon: Icon(Icons.save),
+              onPressed: () {
+                _saveForm();
+              })
         ],
       ),
       body: Padding(
@@ -66,6 +83,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     textInputAction: TextInputAction.next,
                     onFieldSubmitted: (_) {
                       FocusScope.of(context).requestFocus(_priceFocusNode);
+                    },
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'please provide a value';
+                      }
+                      return null;
                     },
                     onSaved: (value) {
                       _savedProduct = Product(
@@ -85,6 +108,20 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       FocusScope.of(context)
                           .requestFocus(_descriptionFocusNode);
                     },
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'please provide a value';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'please enter a valid number';
+                      }
+
+                      if (double.parse(value) < 0) {
+                        return 'please enter a value greater than 0';
+                      }
+
+                      return null;
+                    },
                     onSaved: (value) {
                       _savedProduct = Product(
                           id: null,
@@ -100,6 +137,16 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     maxLines: 5,
                     keyboardType: TextInputType.multiline,
                     focusNode: _descriptionFocusNode,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'please provide a value';
+                      }
+                      if (value.length < 10) {
+                        return 'description must contain atleast 10 words';
+                      }
+
+                      return null;
+                    },
                     onSaved: (value) {
                       _savedProduct = Product(
                           id: null,
@@ -141,6 +188,24 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           keyboardType: TextInputType.url,
                           controller: _imageURLController,
                           focusNode: _imageURLFocusNode,
+                          validator: (value) {
+                            if (value.isEmpty) {
+                              return 'please provide a value';
+                            }
+
+                            if (!value.startsWith("http") ||
+                                !value.startsWith("https")) {
+                              return 'please provide a valid url';
+                            }
+
+                            if (!value.endsWith(".png") &&
+                                !value.endsWith(".jpg") &&
+                                !value.endsWith(".jpeg")) {
+                              return "images should be in png,jpg,jpeg format";
+                            }
+
+                            return null;
+                          },
                           onFieldSubmitted: (_) {
                             _saveForm();
                           },
