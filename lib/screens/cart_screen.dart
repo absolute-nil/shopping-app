@@ -6,6 +6,7 @@ import '../providers/orders.dart';
 
 class CartScreen extends StatelessWidget {
   static final routeName = "/cart-screen";
+  var _isLoading = false;
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<Cart>(context);
@@ -39,15 +40,7 @@ class CartScreen extends StatelessWidget {
                   SizedBox(
                     width: 10,
                   ),
-                  FlatButton(
-                    onPressed: () {
-                      Provider.of<Orders>(context, listen: false).addOrder(
-                          cart.items.values.toList(), cart.totalAmount);
-                      cart.clearItems();
-                    },
-                    child: Text("Order Now"),
-                    color: Theme.of(context).accentColor,
-                  ),
+                  OrderButton(cart: cart),
                 ],
               ),
             ),
@@ -67,6 +60,50 @@ class CartScreen extends StatelessWidget {
                       price: cart.items.values.toList()[i].price)))
         ],
       ),
+    );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    Key key,
+    @required this.cart,
+  }) : super(key: key);
+
+  final Cart cart;
+
+  @override
+  _OrderButtonState createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  var _isLoading = false;
+  @override
+  Widget build(BuildContext context) {
+    final scaffold = Scaffold.of(context);
+    return FlatButton(
+      onPressed: (!(widget.cart.items.length > 0) || (_isLoading))? null : () async {
+        setState(() {
+          _isLoading = true;
+        });
+        try {
+          await Provider.of<Orders>(context, listen: false)
+              .addOrder(
+                  widget.cart.items.values.toList(), widget.cart.totalAmount);
+          widget.cart.clearItems();
+        } catch (e) {
+          scaffold.showSnackBar(SnackBar(
+              content: Text(
+            "Couldnt process order",
+            textAlign: TextAlign.center,
+          )));
+        }
+                setState(() {
+          _isLoading = false;
+        });
+      },
+      child: _isLoading? CircularProgressIndicator(backgroundColor: Theme.of(context).primaryColor,) : Text("Order Now"),
+      color: Theme.of(context).accentColor,
     );
   }
 }
