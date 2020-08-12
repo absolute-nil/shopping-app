@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shopping_app/models/http_expecption.dart';
 
 import '../data/products.dart';
 import './product.dart';
 
 class Products with ChangeNotifier {
-  List<Product> _items = [...productsData];
+  List<Product> _items = []; //= [...productsData];
+
+  static const baseUrl = "https://shopping-app-70e63.firebaseio.com";
 
   bool _showFavouriteOnly = false;
 
@@ -33,41 +36,97 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  void updateProduct(String id, Product product){
+  Future<void> updateProduct(String id, Product product) async {
+    final url = "$baseUrl/products/$id.json";
+
     final productIndex = _items.indexWhere((product) => product.id == id);
-    if(productIndex >=0){
+    if (productIndex >= 0) {
+      try {
+        await http.patch(url,
+            body: json.encode({
+              'title': product.title,
+              'description': product.description,
+              'price': product.price,
+              'imageUrl': product.imageUrl
+            }));
+      } catch (e) {
+        throw e;
+      }
       _items[productIndex] = product;
-    }else{
+    } else {
       print("invalid");
     }
 
     notifyListeners();
   }
 
-  Future<void> addProduct(Product product) {
-    const url = "https://shopping-app-70e63.firebaseio.com/products.json";
-    return http.post(url,body: json.encode({
-      'title': product.title,
-      'description': product.description,
-        'price': product.price,
-        'imageUrl': product.imageUrl 
-    })).then((response){
-    final newProduct = Product(
-        id: json.decode(response.body)['title'],
-        title: product.title,
-        description: product.description,
-        price: product.price,
-        imageUrl: product.imageUrl);
-    _items.add(newProduct);
-    notifyListeners();
-    }).catchError((error){
-      throw error;
-    });
-
+  Future<void> fetchAndSetProducts() async {
+    final url = "$baseUrl/products.json";
+    try {
+      final response = await http.get(url);
+      final decodedResponse =
+          json.decode(response.body) as Map<String, dynamic>;
+      final List<Product> loadedProducts = [];
+      if(decodedResponse == null){
+        return;
+      }
+      decodedResponse.forEach((productId, productdata) {
+        loadedProducts.add(Product(
+          id: productId,
+          title: productdata['title'],
+          description: productdata['description'],
+          price: productdata['price'],
+          imageUrl: productdata['imageUrl'],
+          isFavourite: productdata['isFavourite'],
+        ));
+      });
+      _items = loadedProducts;
+      notifyListeners();
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
-  void deleteProduct(String id){
+  Future<void> addProduct(Product product) async {
+    final url = "$baseUrl/products.json";
+    try {
+      final response = await http.post(url,
+          body: json.encode({
+            'title': product.title,
+            'description': product.description,
+            'price': product.price,
+            'imageUrl': product.imageUrl,
+            'isFavourite': product.isFavourite,
+          }));
+
+      final newProduct = Product(
+          id: json.decode(response.body)['name'],
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          imageUrl: product.imageUrl);
+      _items.add(newProduct);
+      notifyListeners();
+    } catch (error) {
+      print("error in add product" + error.toString());
+      throw error;
+    }
+  }
+
+  Future<void> deleteProduct(String id) async{
+        final url = "$baseUrl/products/$id.json";
+
+    final deletedProductIndex = _items.indexWhere((product) => product.id == id);
+    var deletedProduct = _items[deletedProductIndex];
     _items.removeWhere((product) => product.id == id);
     notifyListeners();
+    final response = await http.delete(url);
+    if(response.statusCode >= 400){
+      _items.insert(deletedProductIndex, deletedProduct);
+      notifyListeners();
+      throw HttpException('Could not delete product');
+    }
+    deletedProduct = null;
+
   }
 }
