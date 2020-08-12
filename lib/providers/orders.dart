@@ -1,10 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:intl/intl.dart';
 import 'package:shopping_app/models/http_expecption.dart';
 
 import './cart.dart';

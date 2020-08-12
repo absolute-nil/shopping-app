@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shopping_app/models/http_expecption.dart';
 
-import '../data/products.dart';
 import './product.dart';
 
 class Products with ChangeNotifier {
@@ -12,7 +11,6 @@ class Products with ChangeNotifier {
 
   static const baseUrl = "https://shopping-app-70e63.firebaseio.com";
 
-  bool _showFavouriteOnly = false;
 
   List<Product> get items {
     return [..._items];

@@ -44,9 +44,9 @@ class _ProductsOverviewState extends State<ProductsOverview> {
         title: Text(_showOnlyFavourites? "Favourites": "Shopping App"),
         actions: <Widget>[
           PopupMenuButton(
-              onSelected: (FilterOptions selected_value) {
+              onSelected: (FilterOptions selectedValue) {
                 setState(() {
-                  if (selected_value == FilterOptions.Favourite) {
+                  if (selectedValue == FilterOptions.Favourite) {
                     _showOnlyFavourites = true;
                   } else {
                     _showOnlyFavourites = false;

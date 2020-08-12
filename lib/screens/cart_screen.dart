@@ -6,7 +6,6 @@ import '../providers/orders.dart';
 
 class CartScreen extends StatelessWidget {
   static final routeName = "/cart-screen";
-  var _isLoading = false;
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<Cart>(context);
