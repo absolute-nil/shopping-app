@@ -15,6 +15,7 @@ class UserProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaffold = Scaffold.of(context);
     return Card(
       shadowColor: Theme.of(context).primaryColor,
       child: ListTile(
@@ -45,16 +46,20 @@ class UserProductItem extends StatelessWidget {
                             actions: <Widget>[
                               FlatButton(
                                   onPressed: () {
-                                    Navigator.of(context).pop();
+                                    Navigator.of(ctx).pop();
                                   },
                                   child: Text("NO")),
                               FlatButton(
-                                  onPressed: () {
-                                    Provider.of<Products>(context,
-                                            listen: false)
-                                        .deleteProduct(id);
-
-                                    Navigator.of(context).pop();
+                                  onPressed: () async {
+                                    Navigator.of(ctx).pop();
+                                    try {
+                                      await Provider.of<Products>(context,
+                                              listen: false)
+                                          .deleteProduct(id);
+                                    } catch (e) {
+                                      scaffold.showSnackBar(SnackBar(
+                                          content: Text(e.toString(), textAlign: TextAlign.center,)));
+                                    }
                                   },
                                   child: Text("YES"))
                             ],
