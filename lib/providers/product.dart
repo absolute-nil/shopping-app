@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shopping_app/models/http_expecption.dart';
 
 class Product with ChangeNotifier {
   final String id;
@@ -17,8 +21,24 @@ class Product with ChangeNotifier {
       @required this.imageUrl,
       this.isFavourite = false});
 
-  void toggleFavourite() {
-    isFavourite = !isFavourite;
+  Future<void> toggleFavourite() async {
+    var previousValue = isFavourite;
+    isFavourite = !previousValue;
     notifyListeners();
+    final url = "https://shopping-app-70e63.firebaseio.com/products/$id.json";
+    try {
+      final response = await http.patch(url, body: json.encode({'isFavourite': !previousValue}));
+      if(response.statusCode >= 400){
+        throw HttpException('failed to edit favourite status');
+
+      }
+      print(response.statusCode);
+      previousValue = null;
+    } catch (e) {
+      print("exception");
+      isFavourite = previousValue;
+      notifyListeners();
+      throw e;
+    }
   }
 }
