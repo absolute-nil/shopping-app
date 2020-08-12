@@ -70,7 +70,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     super.dispose();
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     final isValid = _form.currentState.validate();
     if (!isValid) {
       return;
@@ -80,17 +80,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       _loading = true;
     });
     if (_savedProduct.id != null) {
-      Provider.of<Products>(context, listen: false)
+      await Provider.of<Products>(context, listen: false)
           .updateProduct(_savedProduct.id, _savedProduct);
-      setState(() {
-        _loading = false;
-      });
-      Navigator.of(context).pop();
     } else {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_savedProduct)
-          .catchError((error) {
-        return showDialog<Null>(
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .addProduct(_savedProduct);
+      } catch (error) {
+        await showDialog<Null>(
             context: context,
             builder: (ctx) => AlertDialog(
                   title: Text("Could not process request"),
@@ -103,14 +100,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         child: Text("Okay"))
                   ],
                 ));
-      }).then((value) {
-        setState(() {
-          _loading = false;
-        });
-        Navigator.of(context).pop();
-      });
-      
+      }// finally {
+      //   setState(() {
+      //     _loading = false;
+      //   });
+      //   Navigator.of(context).pop();
+      // }
     }
+          setState(() {
+        _loading = false;
+      });
+      Navigator.of(context).pop();
+
   }
 
   @override
