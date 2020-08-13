@@ -10,12 +10,13 @@ class UserProductsScreen extends StatelessWidget {
   static const route_name = "/user-products";
 
   Future<void> _refreshProducts(context) async {
-    await Provider.of<Products>(context, listen: false).fetchAndSetProducts();
+    await Provider.of<Products>(context, listen: false)
+        .fetchAndSetProducts(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final products = Provider.of<Products>(context);
+    // final products = Provider.of<Products>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Your products"),
@@ -28,20 +29,30 @@ class UserProductsScreen extends StatelessWidget {
           )
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshProducts(context),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ListView.builder(
-            itemBuilder: (_, i) => UserProductItem(
-              id: products.items[i].id,
-              title: products.items[i].title,
-              imageUrl: products.items[i].imageUrl,
-              key: ValueKey(products.items[i].id),
-            ),
-            itemCount: products.items.length,
-          ),
-        ),
+      body: FutureBuilder(
+        future: _refreshProducts(context),
+        builder: (ctx, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : RefreshIndicator(
+                    onRefresh: () => _refreshProducts(context),
+                    child: Consumer<Products>(
+                        builder: (ctx,products,_) => Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ListView.builder(
+                          itemBuilder: (_, i) => UserProductItem(
+                            id: products.items[i].id,
+                            title: products.items[i].title,
+                            imageUrl: products.items[i].imageUrl,
+                            key: ValueKey(products.items[i].id),
+                          ),
+                          itemCount: products.items.length,
+                        ),
+                      ),
+                    ),
+                  ),
       ),
       drawer: AppDrawer(),
     );
