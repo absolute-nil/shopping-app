@@ -21,13 +21,13 @@ class Product with ChangeNotifier {
       @required this.imageUrl,
       this.isFavourite = false});
 
-  Future<void> toggleFavourite() async {
+  Future<void> toggleFavourite(String token, String userId) async {
     var previousValue = isFavourite;
     isFavourite = !previousValue;
     notifyListeners();
-    final url = "https://shopping-app-70e63.firebaseio.com/products/$id.json";
+    final url = "https://shopping-app-70e63.firebaseio.com/userFavourites/$userId/$id.json?auth=$token";
     try {
-      final response = await http.patch(url, body: json.encode({'isFavourite': !previousValue}));
+      final response = await http.put(url, body: json.encode(!previousValue));
       if(response.statusCode >= 400){
         throw HttpException('failed to edit favourite status');
 

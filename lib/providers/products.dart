@@ -11,6 +11,10 @@ class Products with ChangeNotifier {
 
   static const baseUrl = "https://shopping-app-70e63.firebaseio.com";
 
+  final String authToken;
+  final String userId;
+
+  Products(this.authToken, this.userId, this._items);
 
   List<Product> get items {
     return [..._items];
@@ -35,7 +39,7 @@ class Products with ChangeNotifier {
   // }
 
   Future<void> updateProduct(String id, Product product) async {
-    final url = "$baseUrl/products/$id.json";
+    final url = "$baseUrl/products/$id.json?auth=$authToken";
 
     final productIndex = _items.indexWhere((product) => product.id == id);
     if (productIndex >= 0) {
@@ -59,7 +63,7 @@ class Products with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProducts() async {
-    final url = "$baseUrl/products.json";
+    var url = "$baseUrl/products.json?auth=$authToken";
     try {
       final response = await http.get(url);
       final decodedResponse =
@@ -68,6 +72,9 @@ class Products with ChangeNotifier {
       if(decodedResponse == null){
         return;
       }
+      url = "https://shopping-app-70e63.firebaseio.com/userFavourites/$userId.json?auth=$authToken";
+      final userResponse = await http.get(url);
+      final decodedUserResponse = json.decode(userResponse.body);
       decodedResponse.forEach((productId, productdata) {
         loadedProducts.add(Product(
           id: productId,
@@ -75,7 +82,7 @@ class Products with ChangeNotifier {
           description: productdata['description'],
           price: productdata['price'],
           imageUrl: productdata['imageUrl'],
-          isFavourite: productdata['isFavourite'],
+          isFavourite: decodedUserResponse == null? false : decodedUserResponse[productId] ?? false
         ));
       });
       _items = loadedProducts;
@@ -86,7 +93,7 @@ class Products with ChangeNotifier {
   }
 
   Future<void> addProduct(Product product) async {
-    final url = "$baseUrl/products.json";
+    final url = "$baseUrl/products.json?auth=$authToken";
     try {
       final response = await http.post(url,
           body: json.encode({
@@ -94,7 +101,6 @@ class Products with ChangeNotifier {
             'description': product.description,
             'price': product.price,
             'imageUrl': product.imageUrl,
-            'isFavourite': product.isFavourite,
           }));
 
       final newProduct = Product(
@@ -112,7 +118,7 @@ class Products with ChangeNotifier {
   }
 
   Future<void> deleteProduct(String id) async{
-        final url = "$baseUrl/products/$id.json";
+        final url = "$baseUrl/products/$id.json?auth=$authToken";
 
     final deletedProductIndex = _items.indexWhere((product) => product.id == id);
     var deletedProduct = _items[deletedProductIndex];
