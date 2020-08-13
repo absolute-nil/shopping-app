@@ -26,7 +26,7 @@ class _ProductsOverviewState extends State<ProductsOverview> {
     });
     Future.delayed(Duration.zero).then((_) {
       Provider.of<Products>(context, listen: false)
-          .fetchAndSetProducts()
+          .fetchAndSetProducts(false)
           .then((_) {
         setState(() {
           _isLoading = false;
