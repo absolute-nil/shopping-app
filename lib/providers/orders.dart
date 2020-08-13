@@ -24,17 +24,18 @@ class Orders with ChangeNotifier {
   static const baseUrl = "https://shopping-app-70e63.firebaseio.com";
 
   final String authToken;
+  final String userId;
 
   List<OrderItem> _orders = [];
 
-  Orders(this.authToken, this._orders);
+  Orders(this.authToken, this.userId, this._orders);
 
   List<OrderItem> get orders {
     return [..._orders];
   }
 
   Future<void> fetchAndSetOrders() async {
-    final url = "$baseUrl/orders.json?auth=$authToken";
+    final url = "$baseUrl/orders/$userId.json?auth=$authToken";
     try {
       final response = await http.get(url);
       final decodedResponse =
@@ -68,7 +69,7 @@ class Orders with ChangeNotifier {
   Future<void> addOrder(List<CartItem> cartProducts, double total) async {
     try {
       final time = DateTime.now();
-      final response = await http.post("$baseUrl/orders.json?auth=$authToken",
+      final response = await http.post("$baseUrl/orders/$userId.json?auth=$authToken",
           body: json.encode({
             'amount': total,
             'dateTime': time.toIso8601String(),
