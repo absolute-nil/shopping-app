@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_app/models/http_expecption.dart';
@@ -43,12 +41,12 @@ class AuthScreen extends StatelessWidget {
                   Flexible(
                     child: Transform.rotate(
                       angle: -0.14,
-                                          child: Container(
+                      child: Container(
                         margin: EdgeInsets.only(bottom: 20.0),
-                        padding:
-                            EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
+                        padding: EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 94.0),
                         // transform: Matrix4.rotationZ(-8 * pi / 180)
-                          // ..translate(-10.0),
+                        // ..translate(-10.0),
                         // ..translate(-10.0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
@@ -65,7 +63,9 @@ class AuthScreen extends StatelessWidget {
                           'Shopify',
                           style: TextStyle(
                             color: Colors.white,
-                            shadows: [Shadow(color: Colors.yellow,blurRadius: 7)],
+                            shadows: [
+                              Shadow(color: Colors.yellow, blurRadius: 7)
+                            ],
                             fontSize: 50,
                             fontFamily: 'Anton',
                             fontWeight: FontWeight.normal,
@@ -98,24 +98,56 @@ class AuthCard extends StatefulWidget {
   _AuthCardState createState() => _AuthCardState();
 }
 
-class _AuthCardState extends State<AuthCard> {
+class _AuthCardState extends State<AuthCard>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
   Map<String, String> _authData = {
     'email': '',
     'password': '',
   };
+
   var _isLoading = false;
   final _passwordController = TextEditingController();
 
-  void _showErrorDialogue (String error){
-    showDialog(context: context, builder: (ctx)=> AlertDialog(title: Text("An Error occoured"),
-    content: Text(error),actions: [
-      FlatButton(onPressed: () => Navigator.of(ctx).pop(), child: Text("Okay"))
-    ],));
+  // animations
+  AnimationController _controller;
+  Animation<Size> _heightAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _heightAnimation = Tween<Size>(
+            begin: Size(double.infinity, 260), end: Size(double.infinity, 320))
+        .animate(
+            CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn));
+    // _heightAnimation.addListener(() => setState(() {}));
   }
 
-  void _submit() async{
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _showErrorDialogue(String error) {
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: Text("An Error occoured"),
+              content: Text(error),
+              actions: [
+                FlatButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text("Okay"))
+              ],
+            ));
+  }
+
+  void _submit() async {
     if (!_formKey.currentState.validate()) {
       // Invalid!
       return;
@@ -126,33 +158,32 @@ class _AuthCardState extends State<AuthCard> {
     });
     try {
       if (_authMode == AuthMode.Login) {
-      // Log user in
-      await Provider.of<Auth>(context, listen: false).signin(_authData['email'], _authData['password']);
-
-    } else {
-      // Sign user up
-      await Provider.of<Auth>(context, listen: false).signup(_authData['email'], _authData['password']);
-    }
-    } on HttpException catch(error){
+        // Log user in
+        await Provider.of<Auth>(context, listen: false)
+            .signin(_authData['email'], _authData['password']);
+      } else {
+        // Sign user up
+        await Provider.of<Auth>(context, listen: false)
+            .signup(_authData['email'], _authData['password']);
+      }
+    } on HttpException catch (error) {
       var errorMessage = "Authentication Failed";
-      if(error.toString().contains("EMAIL_EXISTS")){
+      if (error.toString().contains("EMAIL_EXISTS")) {
         errorMessage = "An account with this email already exists";
-      }
-      else if(error.toString().contains("INVALID_EMAIL")){
+      } else if (error.toString().contains("INVALID_EMAIL")) {
         errorMessage = "This email is not valid";
-      }
-      else if(error.toString().contains("WEAK_PASSWORD")){
+      } else if (error.toString().contains("WEAK_PASSWORD")) {
         errorMessage = "Password is too weak";
-      }
-      else if(error.toString().contains("EMAIL_NOT_FOUND")){
+      } else if (error.toString().contains("EMAIL_NOT_FOUND")) {
         errorMessage = "Couldnt find a user with that email";
       }
-      if(error.toString().contains("INVALID_PASSWORD")){
+      if (error.toString().contains("INVALID_PASSWORD")) {
         errorMessage = "Invalid Password";
       }
       _showErrorDialogue(errorMessage);
-    }  catch (error) {
-      var errorMessage = "could not authenticate you please try again in a while";
+    } catch (error) {
+      var errorMessage =
+          "could not authenticate you please try again in a while";
       _showErrorDialogue(errorMessage);
     }
 
@@ -166,10 +197,12 @@ class _AuthCardState extends State<AuthCard> {
       setState(() {
         _authMode = AuthMode.Signup;
       });
+      _controller.forward();
     } else {
       setState(() {
         _authMode = AuthMode.Login;
       });
+      _controller.reverse();
     }
   }
 
@@ -181,12 +214,16 @@ class _AuthCardState extends State<AuthCard> {
         borderRadius: BorderRadius.circular(10.0),
       ),
       elevation: 8.0,
-      child: Container(
-        height: _authMode == AuthMode.Signup ? 320 : 260,
-        constraints:
-            BoxConstraints(minHeight: _authMode == AuthMode.Signup ? 320 : 260),
-        width: deviceSize.width * 0.75,
-        padding: EdgeInsets.all(16.0),
+      child: AnimatedBuilder(
+        animation: _heightAnimation,
+        builder: (ctx, child) => Container(
+            // height: _authMode == AuthMode.Signup ? 320 : 260,
+            height: _heightAnimation.value.height,
+            constraints:
+                BoxConstraints(minHeight: _heightAnimation.value.height),
+            width: deviceSize.width * 0.75,
+            padding: EdgeInsets.all(16.0),
+            child: child),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
