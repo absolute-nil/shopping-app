@@ -14,6 +14,7 @@ import './providers/orders.dart';
 import './screens/orders_screen.dart';
 import './screens/user_products_screen.dart';
 import './screens/auth_screen.dart';
+import './helpers/custom_fade_route.dart';
 
 void main() => runApp(MyApp());
 
@@ -45,7 +46,12 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(
                 primarySwatch: Colors.pink,
                 accentColor: Colors.amberAccent,
-                fontFamily: GoogleFonts.lato().fontFamily),
+                fontFamily: GoogleFonts.lato().fontFamily,
+                pageTransitionsTheme: PageTransitionsTheme(builders: {
+                  TargetPlatform.android: CustomFadeTransitionBuilder(),
+                  TargetPlatform.iOS: CustomFadeTransitionBuilder()
+                })),
+            
             home: auth.isAuth ? ProductsOverview() : FutureBuilder(future: auth.tryAutoLogin(),builder: (ctx,authResultSnap) => authResultSnap.connectionState == ConnectionState.waiting? SplashScreen(): AuthScreen()) ,
             routes: {
               ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
