@@ -32,12 +32,15 @@ class ProductItem extends StatelessWidget {
           child: Stack(
             children: <Widget>[
               new Positioned.fill(
-                child: FadeInImage(
+                child: Hero(
+                  tag: product.id,
+                  child: FadeInImage(
                     placeholder:
                         AssetImage("assets/images/product-placeholder.png"),
                     image: NetworkImage(product.imageUrl),
-                    fit: BoxFit.cover,),
-                    
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
               new Positioned.fill(
                 child: Material(
