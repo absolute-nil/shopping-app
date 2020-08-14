@@ -32,10 +32,13 @@ class ProductItem extends StatelessWidget {
           child: Stack(
             children: <Widget>[
               new Positioned.fill(
-                  child: Image.network(
-                product.imageUrl,
-                fit: BoxFit.cover,
-              )),
+                child: FadeInImage(
+                    placeholder:
+                        AssetImage("assets/images/product-placeholder.png"),
+                    image: NetworkImage(product.imageUrl),
+                    fit: BoxFit.cover,),
+                    
+              ),
               new Positioned.fill(
                 child: Material(
                   color: Colors.transparent,
@@ -60,11 +63,15 @@ class ProductItem extends StatelessWidget {
                 icon: Icon(product.isFavourite
                     ? Icons.favorite
                     : Icons.favorite_border),
-                onPressed: () async{
+                onPressed: () async {
                   try {
                     await product.toggleFavourite(auth.token, auth.userId);
                   } catch (e) {
-                    scaffold.showSnackBar(SnackBar(content: Text(e.toString(),textAlign: TextAlign.center,)));
+                    scaffold.showSnackBar(SnackBar(
+                        content: Text(
+                      e.toString(),
+                      textAlign: TextAlign.center,
+                    )));
                   }
                 },
                 color: Theme.of(context).accentColor,
